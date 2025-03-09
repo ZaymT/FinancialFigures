@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Loan Calculator</title>
+    <title>Financial Figures</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -97,7 +97,6 @@
         .job-button:hover {
             background-color: #45a049;
         }
-        /* Styling for the charts */
         .charts {
             display: flex;
             justify-content: space-around;
@@ -108,37 +107,31 @@
             height: 300px;
         }
     </style>
-    <!-- Include Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
     <div class="container">
-        <h1>Student Loan Calculator</h1>
+        <h1>Financial Figures - Student Loan Calculator</h1>
 
         <!-- Pie Charts -->
         <div class="charts">
-            <!-- Chart 1: Average Student Debt by Major -->
             <div class="chart-container">
                 <canvas id="debtChart"></canvas>
             </div>
-            <!-- Chart 2: People Applying for Loans vs Not -->
             <div class="chart-container">
                 <canvas id="loanApplicationChart"></canvas>
             </div>
-            <!-- Chart 3: Time to Pay off Debt by Major -->
             <div class="chart-container">
                 <canvas id="payoffTimeChart"></canvas>
             </div>
         </div>
 
-        <!-- Tab Navigation -->
         <div class="tabs">
             <div class="tab active" onclick="switchTab(1)">Loan Repayment</div>
             <div class="tab" onclick="switchTab(2)">Salary-Based Loan Repayment</div>
         </div>
 
-        <!-- Tab 1: Regular Loan Repayment -->
         <div id="tab1" class="tab-content">
             <div id="loanGroups">
                 <div class="loan-group">
@@ -161,7 +154,6 @@
             <div id="interestCost" class="loan-summary"></div>
         </div>
 
-        <!-- Tab 2: Major-Based Loan Repayment -->
         <div id="tab2" class="tab-content" style="display: none;">
             <div class="input-group">
                 <label for="major">Search for a Major:</label>
@@ -273,10 +265,8 @@
             const jobRecommendations = jobSalaries[major];
             const jobButtonsContainer = document.getElementById("jobButtons");
 
-            // Clear any existing buttons
             jobButtonsContainer.innerHTML = '';
 
-            // Create buttons for each job
             jobRecommendations.forEach((job, index) => {
                 const button = document.createElement("button");
                 button.classList.add("job-button");
@@ -318,78 +308,91 @@
             document.getElementById('majorResult').innerText = `For Major: ${major}, it will take approximately ${years} years and ${remainingMonths} months to repay the loan based on the job salary of ${job.job}.`;
         }
 
-        // Create charts
         window.onload = function() {
-            const ctx1 = document.getElementById('debtChart').getContext('2d');
-            const debtChart = new Chart(ctx1, {
-                type: 'pie',
-                data: {
-                    labels: ['Engineering', 'Medicine', 'Business', 'Computer Science', 'Education', 'Finance'],
-                    datasets: [{
-                        label: 'Average Student Debt by Major',
-                        data: [40000, 50000, 35000, 45000, 25000, 30000], // Mock data
-                        backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#57FF33', '#FF33A1', '#FF5733'],
-                    }]
+    const ctx1 = document.getElementById('debtChart').getContext('2d');
+    const debtChart = new Chart(ctx1, {
+        type: 'pie',
+        data: {
+            labels: ['Engineering', 'Medicine', 'Business', 'Computer Science', 'Education', 'Finance'],
+            datasets: [{
+                label: 'Average Student Debt by Major',
+                data: [25000, 200000, 35000, 20000, 28000, 15000],
+                backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#57FF33', '#FF33A1', '#FF5733'],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(tooltipItem) {
-                                    return '$' + tooltipItem.raw.toLocaleString();
-                                }
-                            }
-                        }
+                title: {
+                    display: true,
+                    text: 'Avg. Student Debt by Major',
+                    font: {
+                        size: 16
                     }
                 }
-            });
-
-            const ctx2 = document.getElementById('loanApplicationChart').getContext('2d');
-            const loanApplicationChart = new Chart(ctx2, {
-                type: 'pie',
-                data: {
-                    labels: ['Applied for Loan', 'Did Not Apply'],
-                    datasets: [{
-                        label: 'Loan Applications',
-                        data: [70, 30], // Mock data
-                        backgroundColor: ['#FFC300', '#C70039'],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    }
-                }
-            });
-
-            const ctx3 = document.getElementById('payoffTimeChart').getContext('2d');
-            const payoffTimeChart = new Chart(ctx3, {
-                type: 'pie',
-                data: {
-                    labels: ['Engineering', 'Medicine', 'Business', 'Computer Science', 'Education', 'Finance'],
-                    datasets: [{
-                        label: 'Time to Pay Off Debt (Years)',
-                        data: [5, 10, 7, 6, 8, 5], // Mock data
-                        backgroundColor: ['#FF6F61', '#FFB6C1', '#8A2BE2', '#32CD32', '#FFD700', '#00CED1'],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    }
-                }
-            });
+            }
         }
+    });
+
+    const ctx2 = document.getElementById('loanApplicationChart').getContext('2d');
+    const loanApplicationChart = new Chart(ctx2, {
+        type: 'pie',
+        data: {
+            labels: ['Applied for Loan', 'Did Not Apply'],
+            datasets: [{
+                label: 'Loan Applications',
+                data: [60, 40], // Mock data
+                backgroundColor: ['#FFC300', '#C70039'],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: '% of Students Applying for Loans',
+                    font: {
+                        size: 16
+                    }
+                }
+            }
+        }
+    });
+
+    const ctx3 = document.getElementById('payoffTimeChart').getContext('2d');
+    const payoffTimeChart = new Chart(ctx3, {
+        type: 'pie',
+        data: {
+            labels: ['Engineering', 'Medicine', 'Business', 'Computer Science', 'Education', 'Finance'],
+            datasets: [{
+                label: 'Time to Pay Off Debt (Years)',
+                data: [10, 30, 8, 10, 12, 5],
+                backgroundColor: ['#FF6F61', '#FFB6C1', '#8A2BE2', '#32CD32', '#FFD700', '#00CED1'],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Avg. Time to Pay Off Student Debt by Major',
+                    font: {
+                        size: 16
+                    }
+                }
+            }
+        }
+    });
+};
     </script>
 
 </body>
