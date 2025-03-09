@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Loan Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px;
+            margin: 0 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+        }
+        .tab.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        .loan-group {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f7f7f7;
+            border-radius: 8px;
+        }
+        .loan-group input {
+            margin-bottom: 10px;
+        }
+        .loan-summary {
+            text-align: left;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+        .job-button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .job-button:hover {
+            background-color: #45a049;
+        }
+        /* Styling for the charts */
+        .charts {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+        }
+        .chart-container {
+            width: 30%;
+            height: 300px;
+        }
+    </style>
+    <!-- Include Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Student Loan Calculator</h1>
+
+        <!-- Pie Charts -->
+        <div class="charts">
+            <!-- Chart 1: Average Student Debt by Major -->
+            <div class="chart-container">
+                <canvas id="debtChart"></canvas>
+            </div>
+            <!-- Chart 2: People Applying for Loans vs Not -->
+            <div class="chart-container">
+                <canvas id="loanApplicationChart"></canvas>
+            </div>
+            <!-- Chart 3: Time to Pay off Debt by Major -->
+            <div class="chart-container">
+                <canvas id="payoffTimeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab(1)">Loan Repayment</div>
+            <div class="tab" onclick="switchTab(2)">Salary-Based Loan Repayment</div>
+        </div>
+
+        <!-- Tab 1: Regular Loan Repayment -->
+        <div id="tab1" class="tab-content">
+            <div id="loanGroups">
+                <div class="loan-group">
+                    <h3>Loan 1</h3>
+                    <label for="loanAmount1">Loan Amount ($):</label>
+                    <input type="number" id="loanAmount1" placeholder="Enter loan amount">
+
+                    <label for="interestRate1">Interest Rate (%) per year:</label>
+                    <input type="number" id="interestRate1" placeholder="Enter interest rate">
+
+                    <label for="monthlyPayment1">Monthly Payment ($):</label>
+                    <input type="number" id="monthlyPayment1" placeholder="Enter monthly payment">
+                </div>
+            </div>
+
+            <button onclick="addLoan()">Add Another Loan</button>
+            <button onclick="calculateLoan()">Calculate Loan Repayment</button>
+
+            <div class="result" id="result"></div>
+            <div id="interestCost" class="loan-summary"></div>
+        </div>
+
+        <!-- Tab 2: Major-Based Loan Repayment -->
+        <div id="tab2" class="tab-content" style="display: none;">
+            <div class="input-group">
+                <label for="major">Search for a Major:</label>
+                <select id="major" onchange="displayJobButtons()">
+                    <option value="default">Select</option>
+                    <option value="engineering">Engineering</option>
+                    <option value="medicine">Medicine</option>
+                    <option value="business">Business</option>
+                    <option value="computer-science">Computer Science</option>
+                    <option value="education">Education</option>
+                    <option value="finance">Finance</option>
+                </select>
+            </div>
+
+            <div class="loan-group">
+                <label for="loanAmount2">Loan Amount ($):</label>
+                <input type="number" id="loanAmount2" placeholder="Enter loan amount">
+
+                <label for="interestRate2">Interest Rate (%) per year:</label>
+                <input type="number" id="interestRate2" placeholder="Enter interest rate">
+
+                <label for="salaryPercentage">Monthly Payment (% of Salary):</label>
+                <input type="number" id="salaryPercentage" placeholder="Enter percentage of salary" min="1" max="100">
+            </div>
+
+            <div id="jobButtons"></div>
+
+            <div class="result" id="majorResult"></div>
+            <div id="jobRecommendations" class="loan-summary"></div>
+        </div>
+    </div>
+
+    <script>
+        let loanCount = 1;
+        const jobSalaries = {
+            "engineering": [{job: "Civil Engineer", salary: 60000}, {job: "Mechanical Engineer", salary: 65000}, {job: "Electrical Engineer", salary: 70000}],
+            "medicine": [{job: "Registered Nurse", salary: 70000}, {job: "Surgeon", salary: 300000}, {job: "Pediatrician", salary: 180000}],
+            "business": [{job: "Financial Analyst", salary: 70000}, {job: "Marketing Manager", salary: 75000}, {job: "HR Manager", salary: 80000}],
+            "computer-science": [{job: "Software Engineer", salary: 100000}, {job: "Data Scientist", salary: 95000}, {job: "Network Engineer", salary: 85000}],
+            "education": [{job: "Teacher", salary: 45000}, {job: "College Professor", salary: 65000}, {job: "School Counselor", salary: 60000}],
+            "finance": [{job: "Financial Analyst", salary: 70000}, {job: "Accountant", salary: 60000}, {job: "Portfolio Manager", salary: 100000}],
+        };
+
+        function switchTab(tabNumber) {
+            const tabContents = document.querySelectorAll('.tab-content');
+            const tabs = document.querySelectorAll('.tab');
+
+            tabContents.forEach((content, index) => {
+                content.style.display = (index + 1 === tabNumber) ? 'block' : 'none';
+            });
+
+            tabs.forEach((tab, index) => {
+                tab.classList.toggle('active', index + 1 === tabNumber);
+            });
+        }
+
+        function addLoan() {
+            loanCount++;
+            const loanGroup = document.createElement("div");
+            loanGroup.classList.add("loan-group");
+            loanGroup.innerHTML = `
+                <h3>Loan ${loanCount}</h3>
+                <label for="loanAmount${loanCount}">Loan Amount ($):</label>
+                <input type="number" id="loanAmount${loanCount}" placeholder="Enter loan amount">
+
+                <label for="interestRate${loanCount}">Interest Rate (%) per year:</label>
+                <input type="number" id="interestRate${loanCount}" placeholder="Enter interest rate">
+
+                <label for="monthlyPayment${loanCount}">Monthly Payment ($):</label>
+                <input type="number" id="monthlyPayment${loanCount}" placeholder="Enter monthly payment">
+            `;
+            document.getElementById("loanGroups").appendChild(loanGroup);
+        }
+
+        function calculateLoan() {
+            let totalInterestPaid = 0;
+            let totalTimeMonths = 0;
+
+            for (let i = 1; i <= loanCount; i++) {
+                const loanAmount = parseFloat(document.getElementById(`loanAmount${i}`).value);
+                const interestRate = parseFloat(document.getElementById(`interestRate${i}`).value) / 100 / 12;
+                const monthlyPayment = parseFloat(document.getElementById(`monthlyPayment${i}`).value);
+
+                if (isNaN(loanAmount) || isNaN(interestRate) || isNaN(monthlyPayment) || loanAmount <= 0 || interestRate <= 0 || monthlyPayment <= 0) {
+                    document.getElementById('result').innerText = "Please enter valid values for all fields.";
+                    return;
+                }
+
+                const months = Math.log(monthlyPayment / (monthlyPayment - loanAmount * interestRate)) / Math.log(1 + interestRate);
+                const years = Math.floor(months / 12);
+                const remainingMonths = Math.round(months % 12);
+
+                const totalAmountPaid = monthlyPayment * months;
+                const interestPaid = totalAmountPaid - loanAmount;
+
+                totalInterestPaid += interestPaid;
+                totalTimeMonths += months;
+            }
+
+            const totalYears = Math.floor(totalTimeMonths / 12);
+            const remainingMonths = Math.round(totalTimeMonths % 12);
+
+            document.getElementById('result').innerText = `Total Time to Repay All Loans: ${totalYears} years and ${remainingMonths} months.`;
+            document.getElementById('interestCost').innerText = `Total Interest Paid: $${totalInterestPaid.toFixed(2)}`;
+        }
+
+        function displayJobButtons() {
+            const major = document.getElementById("major").value;
+            const jobRecommendations = jobSalaries[major];
+            const jobButtonsContainer = document.getElementById("jobButtons");
+
+            // Clear any existing buttons
+            jobButtonsContainer.innerHTML = '';
+
+            // Create buttons for each job
+            jobRecommendations.forEach((job, index) => {
+                const button = document.createElement("button");
+                button.classList.add("job-button");
+                button.textContent = `${job.job} - $${job.salary}`;
+                button.onclick = function() {
+                    calculateMajorLoanRepayment(job);
+                };
+                jobButtonsContainer.appendChild(button);
+            });
+        }
+
+        function calculateMajorLoanRepayment(job) {
+            const major = document.getElementById("major").value;
+            const loanAmount = parseFloat(document.getElementById("loanAmount2").value);
+            const interestRate = parseFloat(document.getElementById("interestRate2").value) / 100 / 12;
+            const salaryPercentage = parseFloat(document.getElementById("salaryPercentage").value);
+
+            if (isNaN(loanAmount) || isNaN(interestRate) || isNaN(salaryPercentage) || loanAmount <= 0 || interestRate <= 0 || salaryPercentage <= 0) {
+                document.getElementById('majorResult').innerText = "Please enter valid values for all fields.";
+                return;
+            }
+
+            const monthlySalary = job.salary / 12;
+            const monthlyPayment = monthlySalary * (salaryPercentage / 100);
+
+            let totalInterestPaid = 0;
+            let totalTimeMonths = 0;
+
+            const months = Math.log(monthlyPayment / (monthlyPayment - loanAmount * interestRate)) / Math.log(1 + interestRate);
+            const years = Math.floor(months / 12);
+            const remainingMonths = Math.round(months % 12);
+
+            const totalAmountPaid = monthlyPayment * months;
+            const interestPaid = totalAmountPaid - loanAmount;
+
+            totalInterestPaid += interestPaid;
+            totalTimeMonths += months;
+
+            document.getElementById('majorResult').innerText = `For Major: ${major}, it will take approximately ${years} years and ${remainingMonths} months to repay the loan based on the job salary of ${job.job}.`;
+        }
+
+        // Create charts
+        window.onload = function() {
+            const ctx1 = document.getElementById('debtChart').getContext('2d');
+            const debtChart = new Chart(ctx1, {
+                type: 'pie',
+                data: {
+                    labels: ['Engineering', 'Medicine', 'Business', 'Computer Science', 'Education', 'Finance'],
+                    datasets: [{
+                        label: 'Average Student Debt by Major',
+                        data: [40000, 50000, 35000, 45000, 25000, 30000], // Mock data
+                        backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#57FF33', '#FF33A1', '#FF5733'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return '$' + tooltipItem.raw.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('loanApplicationChart').getContext('2d');
+            const loanApplicationChart = new Chart(ctx2, {
+                type: 'pie',
+                data: {
+                    labels: ['Applied for Loan', 'Did Not Apply'],
+                    datasets: [{
+                        label: 'Loan Applications',
+                        data: [70, 30], // Mock data
+                        backgroundColor: ['#FFC300', '#C70039'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+
+            const ctx3 = document.getElementById('payoffTimeChart').getContext('2d');
+            const payoffTimeChart = new Chart(ctx3, {
+                type: 'pie',
+                data: {
+                    labels: ['Engineering', 'Medicine', 'Business', 'Computer Science', 'Education', 'Finance'],
+                    datasets: [{
+                        label: 'Time to Pay Off Debt (Years)',
+                        data: [5, 10, 7, 6, 8, 5], // Mock data
+                        backgroundColor: ['#FF6F61', '#FFB6C1', '#8A2BE2', '#32CD32', '#FFD700', '#00CED1'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
